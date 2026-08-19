@@ -1,0 +1,9 @@
+{
+	"id": "another-gtd",
+	"name": "Another GTD",
+	"version": "0.1.0",
+	"minAppVersion": "1.7.2",
+	"description": "GTD where the notes are the source of truth: filing a task moves its line between the gtd bucket files, and data.json holds config only.",
+	"author": "CollinViz",
+	"isDesktopOnly": false
+}

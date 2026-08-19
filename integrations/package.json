@@ -1,0 +1,14 @@
+{
+  "name": "taskloops-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server exposing TaskLoops to external agents (e.g. Hermes).",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.24.0"
+  },
+  "scripts": {
+    "start": "node mcp-server.mjs"
+  }
+}

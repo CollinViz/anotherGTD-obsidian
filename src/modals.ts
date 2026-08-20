@@ -87,6 +87,31 @@ export class ProjectPicker extends FuzzySuggestModal<ProjectChoice> {
 	}
 }
 
+/** Pick the context a next action gets filed under. */
+export class ContextPicker extends FuzzySuggestModal<string> {
+	private contexts: string[];
+	private onPick: (ctx: string) => void;
+
+	constructor(app: App, contexts: string[], onPick: (ctx: string) => void) {
+		super(app);
+		this.contexts = contexts;
+		this.onPick = onPick;
+		this.setPlaceholder("Which context does it get done in?");
+	}
+
+	getItems(): string[] {
+		return this.contexts;
+	}
+
+	getItemText(ctx: string): string {
+		return ctx;
+	}
+
+	onChooseItem(ctx: string): void {
+		this.onPick(ctx);
+	}
+}
+
 /** Pick an existing task to file under a project. */
 export class TaskPicker extends FuzzySuggestModal<JoinedTask> {
 	private tasks: JoinedTask[];

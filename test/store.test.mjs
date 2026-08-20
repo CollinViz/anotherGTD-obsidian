@@ -174,9 +174,123 @@ export default async function run(mod) {
 		});
 		await store.createProject("Renovate kitchen");
 		const projects = await app.vault.adapter.read("gtd/30_projects.md");
-		eq(projects.includes("- [ ] Renovate kitchen"), true, "project index updated");
+		eq(projects.includes("[[Renovate kitchen]]"), true, "project index links to project");
+		eq(projects.includes("- [ ] Renovate kitchen"), false, "project index is not a task");
 		const file = await app.vault.adapter.read("gtd/projects/Renovate kitchen.md");
 		eq(file.includes("- [ ] Renovate kitchen"), true, "project file created");
+	}
+
+	// --- scan picks up project index links ----------------------------------
+	{
+		const { store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n[[Project 2]]\n- [ ] not a link #not-urgent #not-important\n",
+		});
+		const tasks = await store.scan();
+		const projects = tasks.filter(
+			(t) => t.bucket === "project" && t.path === "gtd/30_projects.md"
+		);
+		eq(projects.length, 3, "project index lines scanned");
+		eq(projects.some((p) => p.text === "Renovate kitchen"), true, "link scanned as project");
+		eq(projects.some((p) => p.text === "Project 2"), true, "second link scanned as project");
+	}
+
+	// --- rename a project rewrites the index link ---------------------------
+	{
+		const { app, store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n",
+		});
+		const tasks = await store.scan();
+		const project = tasks.find((t) => t.bucket === "project");
+		await store.rename(project, "Renovate everything");
+		const idx = await app.vault.adapter.read("gtd/30_projects.md");
+		eq(idx.includes("[[Renovate everything]]"), true, "project link renamed");
+		eq(idx.includes("[[Renovate kitchen]]"), false, "old link removed");
+	}
+
+	// --- moving a project out of the index does not crash -------------------
+	{
+		const { app, store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n",
+			"gtd/00_inbox.md": "",
+		});
+		const tasks = await store.scan();
+		const project = tasks.find((t) => t.bucket === "project");
+		await store.moveToBucket(project, "inbox");
+		const inbox = await app.vault.adapter.read("gtd/00_inbox.md");
+		eq(inbox.includes("- [ ] Renovate kitchen"), true, "project becomes a task in inbox");
+		const idx = await app.vault.adapter.read("gtd/30_projects.md");
+		eq(idx.includes("Renovate kitchen"), false, "index link removed");
+	}
+
+	// --- move to next reuses a context tag, no throw ------------------------
+	{
+		const { app, store } = setup({
+			"gtd/00_inbox.md": "- [ ] Buy milk #not-urgent #not-important #@home\n",
+			"gtd/10_next-actions.md": "## @home\n",
+		});
+		const tasks = await store.scan();
+		await store.moveToBucket(tasks[0], "next");
+		const next = await app.vault.adapter.read("gtd/10_next-actions.md");
+		eq(next.includes("- [ ] Buy milk"), true, "task moved to next under tagged context");
+	}
+
+	// --- promote project action to next duplicates, keeps line, marks handled
+	{
+		const { app, store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n",
+			"gtd/projects/Renovate kitchen.md":
+				"- [ ] Renovate kitchen #not-urgent #not-important\n\t- [ ] Buy tiles #not-urgent #not-important #@home\n",
+			"gtd/10_next-actions.md": "## @home\n",
+		});
+		const tasks = await store.scan();
+		const action = tasks.find(
+			(t) => t.path === "gtd/projects/Renovate kitchen.md" && t.text === "Buy tiles"
+		);
+		await store.moveToBucket(action, "next");
+		const projectFile = await app.vault.adapter.read("gtd/projects/Renovate kitchen.md");
+		eq(projectFile.includes("Buy tiles"), true, "project line kept after promote");
+		eq(projectFile.includes("**(handled)**"), true, "project line marked handled");
+		const next = await app.vault.adapter.read("gtd/10_next-actions.md");
+		eq(next.includes("- [ ] Buy tiles"), true, "next copy added");
+		eq((next.match(/- \[ \] Buy tiles/g) ?? []).length, 1, "exactly one next copy");
+	}
+
+	// --- re-promote an already-handled action does not duplicate ------------
+	{
+		const { app, store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n",
+			"gtd/projects/Renovate kitchen.md":
+				"- [ ] Renovate kitchen #not-urgent #not-important\n\t- [ ] Buy tiles #not-urgent #not-important #@home **(handled)**\n",
+			"gtd/10_next-actions.md": "## @home\n- [ ] Buy tiles #not-urgent #not-important\n",
+		});
+		const tasks = await store.scan();
+		const action = tasks.find(
+			(t) => t.path === "gtd/projects/Renovate kitchen.md" && t.text === "Buy tiles"
+		);
+		eq(action.handled, true, "handled flag parsed from marker");
+		await store.moveToBucket(action, "next");
+		const next = await app.vault.adapter.read("gtd/10_next-actions.md");
+		eq((next.match(/- \[ \] Buy tiles/g) ?? []).length, 1, "no duplicate next copy");
+	}
+
+	// --- demote removes the next copy and unhandles the project line --------
+	{
+		const { app, store } = setup({
+			"gtd/30_projects.md": "[[Renovate kitchen]]\n",
+			"gtd/projects/Renovate kitchen.md":
+				"- [ ] Renovate kitchen #not-urgent #not-important\n\t- [ ] Buy tiles #not-urgent #not-important #@home **(handled)**\n",
+			"gtd/10_next-actions.md": "## @home\n- [ ] Buy tiles #not-urgent #not-important\n",
+		});
+		const tasks = await store.scan();
+		const nextTask = tasks.find(
+			(t) => t.bucket === "next" && t.text === "Buy tiles"
+		);
+		await store.demoteFromNext(nextTask);
+		const next = await app.vault.adapter.read("gtd/10_next-actions.md");
+		eq(next.includes("Buy tiles"), false, "next copy removed");
+		const projectFile = await app.vault.adapter.read("gtd/projects/Renovate kitchen.md");
+		eq(projectFile.includes("**(handled)**"), false, "project line unhandled");
+		eq(projectFile.includes("Buy tiles"), true, "project line still present");
 	}
 
 	return results;

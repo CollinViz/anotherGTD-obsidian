@@ -563,6 +563,12 @@
 	color: var(--text-muted);
 }
 
+.tl-chip.is-next {
+	background: transparent;
+	border-color: var(--interactive-accent);
+	color: var(--text-muted);
+}
+
 .tl-chip.is-editable,
 .tl-chip.is-date {
 	cursor: pointer;

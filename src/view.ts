@@ -4,7 +4,7 @@ import { BUCKETS, Bucket, JoinedTask, Task } from "./types";
 import type { CardOptions, PanelHost } from "./host";
 import { renderBoard } from "./board";
 import { CalendarState, initialCalendarState, renderCalendar } from "./calendar";
-import { DateModal, FolderPicker, ProjectPicker, TaskPicker, TextPromptModal } from "./modals";
+import { ContextPicker, DateModal, FolderPicker, ProjectPicker, TaskPicker, TextPromptModal } from "./modals";
 import { daysUntil, formatDue } from "./dates";
 import { truncate } from "./text";
 import { Wizard, WizardHost, renderWizard } from "./wizard";
@@ -484,6 +484,16 @@ export class anotherGtdView extends ItemView implements WizardHost, PanelHost {
 			}).open();
 			return;
 		}
+		if (bucket === "next") {
+			if (task.context && this.plugin.settings.contexts.includes(task.context)) {
+				void this.plugin.file(task, { bucket, context: task.context });
+				return;
+			}
+			new ContextPicker(this.app, this.plugin.settings.contexts, (ctx) => {
+				void this.plugin.file(task, { bucket, context: ctx });
+			}).open();
+			return;
+		}
 		void this.plugin.file(task, { bucket });
 	}
 
@@ -752,6 +762,9 @@ export class anotherGtdView extends ItemView implements WizardHost, PanelHost {
 		if (opts.nested) {
 			const label = BUCKETS.find((b) => b.id === task.bucket)?.label;
 			if (label) meta.createSpan({ cls: "tl-chip", text: label });
+		}
+		if (task.handled) {
+			meta.createSpan({ cls: "tl-chip is-next", text: "in next" });
 		}
 		const contextChip = meta.createSpan({
 			cls: task.context ? "tl-chip is-editable" : "tl-chip is-editable is-empty",

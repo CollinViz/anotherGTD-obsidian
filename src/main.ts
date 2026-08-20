@@ -328,8 +328,9 @@ export default class anotherGtdPlugin extends Plugin {
 		try {
 			await fn();
 		} catch (e) {
-			console.error("Another GTD: write failed", JSON.stringify(e) );
-			new Notice("Another GTD: failed to update the note.");
+			const detail = e instanceof Error ? e.message : String(e);
+			console.error("Another GTD: write failed", detail);
+			new Notice("Another GTD: " + detail);
 		} finally {
 			this.writing.delete(this.settings.captureNote);
 		}

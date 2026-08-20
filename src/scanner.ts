@@ -3,8 +3,17 @@ import { Bucket, GtdSettings, Task } from "./types";
 export const CHECKBOX_RE =
 	/^(\s*)(?:[-*+]|\d+[.)])\s+\[([ xX/-])\]\s+(.*)$/;
 
+/** Marks a project line that has also been filed under Next. */
+export const HANDLED_RE = /\*{1,2}\s*\(handled\)\s*\*{1,2}/gi;
+
 export function isTaskLine(line: string): boolean {
 	return CHECKBOX_RE.test(line);
+}
+
+/** A `[[Name]]` line in the projects index (30_projects.md). */
+export function projectLinkName(line: string): string | undefined {
+	const m = line.match(/^\s*\[\[([^[\]\n]+)\]\]\s*$/);
+	return m?.[1].trim() || undefined;
 }
 
 export function escapeRegex(s: string): string {
@@ -50,7 +59,10 @@ export function parseTaskLine(raw: string): {
 	rest: string;
 	blockId: string;
 } {
-	const m = raw.match(CHECKBOX_RE)!;
+	const m = raw.match(CHECKBOX_RE);
+	if (!m) {
+		return { prefix: "- [ ] ", state: " ", body: cleanTaskText(raw), rest: raw.trim(), blockId: "" };
+	}
 	const rest = m[3];
 	const prefix = raw.slice(0, raw.length - rest.length);
 	const blockId = (rest.match(/(\s+\^[\w-]+)\s*$/)?.[1]) ?? "";
@@ -63,6 +75,7 @@ export function parseTaskLine(raw: string): {
 export function cleanTaskText(raw: string, contexts: string[] = []): string {
 	let t = raw;
 	t = t.replace(/^\s*(?:[-*+]|\d+[.)])\s+\[[ xX/-]\]\s*/, "");
+	t = t.replace(HANDLED_RE, "");
 	t = t.replace(/\s+\^[\w-]+\s*$/, "");
 	t = t.replace(/#due\([^)]*\)/gi, "");
 	t = t.replace(/#waiting-on:[^#\s]*/gi, "");
@@ -199,6 +212,25 @@ export function scanFile(content: string, path: string, settings: GtdSettings): 
 		const raw = lines[i];
 		const cm = raw.match(/^##\s+@(.+)$/);
 		if (cm) currentContext = cm[1].trim();
+		if (path === settings.file.projects) {
+			const linkName = projectLinkName(raw);
+			if (linkName) {
+				const key = linkName.toLowerCase();
+				const occurrence = seen.get(key) ?? 0;
+				seen.set(key, occurrence + 1);
+				out.push({
+					id: taskId(path, linkName, occurrence),
+					path,
+					line: i,
+					raw,
+					text: linkName,
+					indent: indentOf(raw),
+					done: false,
+					bucket: "project",
+				});
+				continue;
+			}
+		}
 		if (!isTaskLine(raw)) continue;
 
 		const body = cleanTaskText(raw, settings.contexts);
@@ -218,6 +250,7 @@ export function scanFile(content: string, path: string, settings: GtdSettings): 
 			indent: indentOf(raw),
 			done: state.toLowerCase() === "x",
 			bucket,
+			handled: HANDLED_RE.test(raw),
 			context: bucket === "next" ? currentContext : extractContext(raw, settings.contexts),
 			urgent: extractUrgent(raw),
 			important: extractImportant(raw),

@@ -62,6 +62,7 @@ export interface Task {
 	indent: number;
 	done: boolean;
 	bucket: Bucket;
+	handled?: boolean;
 	context?: string;
 	urgent?: boolean;
 	important?: boolean;

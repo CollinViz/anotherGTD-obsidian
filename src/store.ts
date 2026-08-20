@@ -1,11 +1,14 @@
 import { App } from "obsidian";
 import { Bucket, GtdSettings, Task, JoinedTask } from "./types";
 import {
+	HANDLED_RE,
+	cleanTaskText,
 	isTaskLine,
 	parseTaskLine,
 	escapeRegex,
 	contextsFromHeadings,
 	pathFor,
+	projectLinkName,
 	projectNameFromPath,
 	projectPathForOutcome,
 	scanFile,
@@ -94,6 +97,45 @@ export class TaskStore {
 			return lines.join("\n");
 		});
 		return changed;
+	}
+
+	private async isHandled(path: string, raw: string): Promise<boolean> {
+		const lines = (await this.read(path)).split("\n");
+		const idx = lines.indexOf(raw);
+		return idx !== -1 && HANDLED_RE.test(lines[idx]);
+	}
+
+	private async markHandled(path: string, raw: string): Promise<void> {
+		await this.process(path, (data) => {
+			const lines = data.split("\n");
+			const idx = lines.indexOf(raw);
+			if (idx === -1 || HANDLED_RE.test(lines[idx])) return data;
+			lines[idx] = lines[idx].replace(/\s+$/, "") + " **(handled)**";
+			return lines.join("\n");
+		});
+	}
+
+	private async unhandleProjectAction(task: Task): Promise<void> {
+		const folder = this.settings.file.projectFolder + "/";
+		for (const file of this.app.vault.getMarkdownFiles()) {
+			if (!file.path.startsWith(folder)) continue;
+			const content = await this.read(file.path);
+			const lines = content.split("\n");
+			let changed = false;
+			for (let i = 0; i < lines.length; i++) {
+				if (
+					HANDLED_RE.test(lines[i]) &&
+					cleanTaskText(lines[i], this.settings.contexts) === task.text
+				) {
+					lines[i] = lines[i]
+						.replace(HANDLED_RE, "")
+						.replace(/\s+([.,;:!?])/g, "$1")
+						.replace(/\s+$/, "");
+					changed = true;
+				}
+			}
+			if (changed) await this.write(file.path, lines.join("\n"));
+		}
 	}
 
 	private async appendLine(path: string, line: string): Promise<void> {
@@ -206,13 +248,25 @@ export class TaskStore {
 			context: opts.context,
 			waitingFor: opts.waitingFor,
 		});
-		await this.removeLine(task.path, task.raw);
-		if (bucket === "next" && opts.context) {
-			await this.insertUnderHeading(targetPath, "## " + opts.context, line);
-		} else if (bucket === "project" && opts.project) {
-			await this.insertUnderFirstLine(targetPath, line);
+		const isProjectAction =
+			bucket === "next" &&
+			task.bucket === "project" &&
+			task.path.startsWith(this.settings.file.projectFolder + "/");
+		if (isProjectAction) {
+			const already = await this.isHandled(task.path, task.raw);
+			await this.markHandled(task.path, task.raw);
+			if (!already && opts.context) {
+				await this.insertUnderHeading(targetPath, "## " + opts.context, line);
+			}
 		} else {
-			await this.appendLine(targetPath, line);
+			await this.removeLine(task.path, task.raw);
+			if (bucket === "next" && opts.context) {
+				await this.insertUnderHeading(targetPath, "## " + opts.context, line);
+			} else if (bucket === "project" && opts.project) {
+				await this.insertUnderFirstLine(targetPath, line);
+			} else {
+				await this.appendLine(targetPath, line);
+			}
 		}
 		if (bucket === "trash") await this.trimTrash();
 	}
@@ -274,7 +328,9 @@ export class TaskStore {
 		const text = body.replace(/\s+/g, " ").trim();
 		if (!text) return false;
 		const parts = parseTaskLine(task.raw);
-		const next = parts.prefix + text + (parts.blockId ? " " + parts.blockId : "");
+		const next = projectLinkName(task.raw)
+			? "[[" + text + "]]"
+			: parts.prefix + text + (parts.blockId ? " " + parts.blockId : "");
 		return this.rewriteLine(task.path, task.raw, () => next);
 	}
 
@@ -319,10 +375,7 @@ export class TaskStore {
 
 	async createProject(text: string): Promise<Task> {
 		const safe = text.replace(/\s+/g, " ").trim();
-		const indexLine = this.buildLine(
-			{ text: safe, raw: "", done: false },
-			{ bucket: "project" }
-		);
+		const indexLine = "[[" + safe + "]]";
 		await this.ensureFile(this.settings.file.projects);
 		await this.appendLine(this.settings.file.projects, indexLine);
 		const projectPath = projectPathForOutcome(safe, this.settings);
@@ -358,11 +411,15 @@ export class TaskStore {
 		const line = this.buildLine(task, { bucket: "next", context });
 		await this.ensureFile(this.settings.file.next);
 		await this.insertUnderHeading(this.settings.file.next, "## " + context, line);
+		if (task.path.startsWith(this.settings.file.projectFolder + "/")) {
+			await this.markHandled(task.path, task.raw);
+		}
 	}
 
 	async demoteFromNext(task: Task): Promise<void> {
 		if (task.bucket !== "next") return;
 		await this.removeLine(task.path, task.raw);
+		await this.unhandleProjectAction(task);
 	}
 
 	async ensureContext(context: string): Promise<void> {

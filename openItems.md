@@ -117,7 +117,7 @@ unblocks the file engine.
 - **Decision (2026-08-18):**
   - **GTD priority (source of truth on the line):** only
     `#urgent` / `#not-urgent` / `#important` / `#not-important`. Two-axis chips
-    + four-quadrant card edge. This is the cornerstone.
+    - four-quadrant card edge. This is the cornerstone.
   - **Optional colour labels (config only, cosmetic):** `P1`…`Pn` entries in
     `data.json` as `{ name, color }` pairs (e.g. P1/red, P2/orange, P3/yellow,
     P4/blue). Names and colours are user-configurable. They do **not** replace
@@ -147,13 +147,13 @@ unblocks the file engine.
 
 ### 11. One-time migration scope
 
-- **Recommendation:** on first load, ingest current `TaskLoops Inbox.md` lines
+- **Recommendation:** on first load, ingest current `anotherGtd Inbox.md` lines
   and `data.json` items into the bucket files (`00_inbox.md`, etc.), adopt your
-  existing `## @context` headings, then never touch `TaskLoops Inbox.md` again.
+  existing `## @context` headings, then never touch `anotherGtd Inbox.md` again.
 - Alternatives: start clean and require manual re-entry; only adopt the
   contexts, not the old items.
 - **Decision (2026-08-18):** **no migration.** Fresh notes-as-truth; no ingest
-  from TaskLoops Inbox / old `items`.
+  from anotherGtd Inbox / old `items`.
 
 ### 12. `data.json` config schema
 

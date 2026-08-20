@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Obsidian GTD plugin (TypeScript + esbuild). Rewrite of TaskLoops: **notes are the source of truth** (bucket = which file the line is in; context = `## @context` heading; priority = `#urgent`/`#important`; done = checkbox). `data.json` is config only — never per-task state.
+Obsidian GTD plugin (TypeScript + esbuild). Rewrite of anotherGtd: **notes are the source of truth** (bucket = which file the line is in; context = `## @context` heading; priority = `#urgent`/`#important`; done = checkbox). `data.json` is config only — never per-task state.
 
 Working code on `main` is now the v2 notes-as-truth rewrite. `src/store.ts` is the write engine. `src/main.ts` no longer keeps an `items` map; `data.json` holds config only.
 
@@ -31,13 +31,13 @@ Root `main.js` (+ map), `styles.css`, `manifest.json` are what Obsidian loads. `
 
 ### Target storage (v2 — see `PLAN.md`)
 
-| State | Encoding |
-|-------|----------|
-| Bucket | file: `00_inbox.md`, `10_next-actions.md`, `20_waiting-for.md`, `40_someday-maybe.md`, `30_projects.md` + `projects/`, `reference/` |
-| Context | `## @context` heading (mandatory on Next) |
-| Priority / due / waiting | `#urgent` `#not-urgent` `#important` `#not-important` / `#due(yyyy-mm-dd)` / `#waiting-on: Name` |
-| Done / order / project | checkbox / physical line order / indent under project line / next-action duplicated into Next |
-| Config only | `data.json` |
+| State                    | Encoding                                                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Bucket                   | file: `00_inbox.md`, `10_next-actions.md`, `20_waiting-for.md`, `40_someday-maybe.md`, `30_projects.md` + `projects/`, `reference/` |
+| Context                  | `## @context` heading (mandatory on Next)                                                                                           |
+| Priority / due / waiting | `#urgent` `#not-urgent` `#important` `#not-important` / `#due(yyyy-mm-dd)` / `#waiting-on: Name`                                    |
+| Done / order / project   | checkbox / physical line order / indent under project line / next-action duplicated into Next                                       |
+| Config only              | `data.json`                                                                                                                         |
 
 v1 `items` map and reconciliation go away when the rewrite lands.
 

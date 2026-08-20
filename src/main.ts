@@ -10,15 +10,15 @@ import {
 import { Bucket, GtdSettings, DEFAULT_SETTINGS, JoinedTask, Task } from "./types";
 import { TaskStore, toJoined } from "./store";
 import { TextPromptModal } from "./modals";
-import { TaskLoopsSettingTab } from "./settings";
-import { TaskLoopsView, VIEW_TYPE_TASKLOOPS } from "./view";
+import { anotherGtdSettingTab } from "./settings";
+import { anotherGtdView, VIEW_TYPE_anotherGtd } from "./view";
 
 interface SettingsOpener {
 	open(): void;
 	openTabById(id: string): void;
 }
 
-export default class TaskLoopsPlugin extends Plugin {
+export default class anotherGtdPlugin extends Plugin {
 	settings: GtdSettings;
 	store: TaskStore;
 	private tasks: Task[] = [];
@@ -28,7 +28,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		await this.loadState();
 		this.store = new TaskStore(this.app, this.settings);
 
-		this.registerView(VIEW_TYPE_TASKLOOPS, (leaf) => new TaskLoopsView(leaf, this));
+		this.registerView(VIEW_TYPE_anotherGtd, (leaf) => new anotherGtdView(leaf, this));
 		this.addRibbonIcon("inbox", "Another GTD", () => void this.activateView());
 
 		this.addCommand({
@@ -59,7 +59,7 @@ export default class TaskLoopsPlugin extends Plugin {
 			},
 		});
 
-		this.addSettingTab(new TaskLoopsSettingTab(this.app, this));
+		this.addSettingTab(new anotherGtdSettingTab(this.app, this));
 
 		this.app.workspace.onLayoutReady(() => {
 			void this.rescan();
@@ -292,9 +292,9 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	refreshViews(): void {
-		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)) {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_anotherGtd)) {
 			const view = leaf.view;
-			if (view instanceof TaskLoopsView) view.render();
+			if (view instanceof anotherGtdView) view.render();
 		}
 	}
 
@@ -302,17 +302,17 @@ export default class TaskLoopsPlugin extends Plugin {
 		const { workspace } = this.app;
 		if (mainArea) {
 			const leaf = workspace.getLeaf("tab");
-			await leaf.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
+			await leaf.setViewState({ type: VIEW_TYPE_anotherGtd, active: true });
 			await workspace.revealLeaf(leaf);
 			return;
 		}
-		const existing = workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS);
+		const existing = workspace.getLeavesOfType(VIEW_TYPE_anotherGtd);
 		let leaf: WorkspaceLeaf | null;
 		if (existing.length > 0) {
 			leaf = existing[0];
 		} else {
 			leaf = workspace.getRightLeaf(false);
-			await leaf?.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
+			await leaf?.setViewState({ type: VIEW_TYPE_anotherGtd, active: true });
 		}
 		if (leaf) await workspace.revealLeaf(leaf);
 	}
@@ -328,7 +328,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		try {
 			await fn();
 		} catch (e) {
-			console.error("Another GTD: write failed", e);
+			console.error("Another GTD: write failed", JSON.stringify(e) );
 			new Notice("Another GTD: failed to update the note.");
 		} finally {
 			this.writing.delete(this.settings.captureNote);

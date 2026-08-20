@@ -1,10 +1,10 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import type TaskLoopsPlugin from "./main";
+import type anotherGtdPlugin from "./main";
 
-export class TaskLoopsSettingTab extends PluginSettingTab {
-	plugin: TaskLoopsPlugin;
+export class anotherGtdSettingTab extends PluginSettingTab {
+	plugin: anotherGtdPlugin;
 
-	constructor(app: App, plugin: TaskLoopsPlugin) {
+	constructor(app: App, plugin: anotherGtdPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

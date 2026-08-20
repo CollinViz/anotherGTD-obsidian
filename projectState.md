@@ -7,7 +7,7 @@ Captured for a fresh session. Read this first, then `AGENTS.md`, `PLAN.md`,
 
 - **New repo:** `/home/collin/workspace/anotherGTD-obsidian` (git, remote
   `CollinViz/anotherGTD-obsidian`, branch `main`, initial commit present).
-- **Source of the rewrite:** `/home/collin/workspace/TaskLoops` (the v1
+- **Source of the rewrite:** `/home/collin/workspace/anotherGtd` (the v1
   baseline everything is derived from).
 - **Vault/wiki (target files):** `/home/collin/wiki/gtd/` — already has
   `00_inbox.md`, `10_next-actions.md` (with `## @context` headings),
@@ -16,7 +16,7 @@ Captured for a fresh session. Read this first, then `AGENTS.md`, `PLAN.md`,
 
 ## Goal
 
-White-room rewrite of TaskLoops: **UI and MCP stay identical; storage changes to
+White-room rewrite of anotherGtd: **UI and MCP stay identical; storage changes to
 notes-as-truth.** A task's bucket = which file its line lives in; context = the
 `## @context` heading (Next only); priority = explicit Eisenhower tags; done =
 checkbox. `data.json` holds config only — the `items` map is deleted.
@@ -33,7 +33,7 @@ checkbox. `data.json` holds config only — the `items` map is deleted.
 - Carried over verbatim: build config, eslint, `.editorconfig`, `.npmrc`,
   `.gitignore`, `scripts/`, `test/`, `.github/workflows/release.yml`, `styles.css`,
   and the full v1 `src/` baseline + `integrations/` (deploy + MCP paths updated
-  from `taskloops` → `another-gtd`).
+  from `anotherGtd` → `another-gtd`).
 - Wrote `PLAN.md` (§1–§13, phases 1–5) and `openItems.md` (12 decisions).
 - Wrote `AGENTS.md` documenting the rewrite status.
 - **2026-08-18: all 12 open decisions settled** (see `openItems.md`).
@@ -48,17 +48,17 @@ context management. `data.json` holds config only.
 
 ## Settled encoding (Phase 1 inputs)
 
-| Concern | Decision |
-|---------|----------|
-| Task marker | `- [ ]` / `- [x]` checkbox line |
-| Due | `#due(yyyy-mm-dd)` |
-| Waiting | file `20_waiting-for.md`; tag `#waiting-on: Name` |
-| Priority | both axes always on line: `#urgent`\|`#not-urgent` + `#important`\|`#not-important`; optional P1…Pn colours in config only |
-| Trash | `gtd/trash.md`, keep last 200 |
-| Context sections | only on Next; delete context → items to inbox; config order syncs file |
-| Projects | `30_projects.md` + `gtd/project/<name>.md`; checkbox = task; next-actions **duplicated** to Next; demote via context menu; project lines may carry context tag |
-| Migration | **none** |
-| `data.json` | config only (no `items`, no promotion tag) |
+| Concern          | Decision                                                                                                                                                       |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Task marker      | `- [ ]` / `- [x]` checkbox line                                                                                                                                |
+| Due              | `#due(yyyy-mm-dd)`                                                                                                                                             |
+| Waiting          | file `20_waiting-for.md`; tag `#waiting-on: Name`                                                                                                              |
+| Priority         | both axes always on line: `#urgent`\|`#not-urgent` + `#important`\|`#not-important`; optional P1…Pn colours in config only                                     |
+| Trash            | `gtd/trash.md`, keep last 200                                                                                                                                  |
+| Context sections | only on Next; delete context → items to inbox; config order syncs file                                                                                         |
+| Projects         | `30_projects.md` + `gtd/project/<name>.md`; checkbox = task; next-actions **duplicated** to Next; demote via context menu; project lines may carry context tag |
+| Migration        | **none**                                                                                                                                                       |
+| `data.json`      | config only (no `items`, no promotion tag)                                                                                                                     |
 
 ## Key files
 

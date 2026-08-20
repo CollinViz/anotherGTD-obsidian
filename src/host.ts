@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import type TaskLoopsPlugin from "./main";
+import type anotherGtdPlugin from "./main";
 import type { Bucket, JoinedTask } from "./types";
 
 /**
@@ -11,7 +11,7 @@ import type { Bucket, JoinedTask } from "./types";
  */
 export interface PanelHost {
 	app: App;
-	plugin: TaskLoopsPlugin;
+	plugin: anotherGtdPlugin;
 
 	/** Redraw the whole panel. */
 	rerender(): void;

@@ -1,10 +1,10 @@
 /**
- * MCP server exposing TaskLoops to external agents (e.g. Hermes).
+ * MCP server exposing anotherGtd to external agents (e.g. Hermes).
  *
  * Run:  node integrations/mcp-server.mjs
  * Vault is read from integrations/.env (OBSIDIAN_VAULT) or the environment.
  * Uses the stdio transport, so register it in your MCP client as:
- *   mcpServers: { taskloops: { command: "node", args: ["integrations/mcp-server.mjs"] } }
+ *   mcpServers: { anotherGtd: { command: "node", args: ["integrations/mcp-server.mjs"] } }
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -12,7 +12,7 @@ import { z } from "zod";
 import * as core from "./core.mjs";
 
 const server = new McpServer({
-	name: "taskloops",
+	name: "anotherGtd",
 	version: "0.1.0",
 });
 
@@ -24,15 +24,15 @@ const fmt = (tasks) =>
 	tasks.length === 0
 		? "No tasks."
 		: tasks
-				.map(
-					(t) =>
-						`- ${t.text}${t.project ? "  [project: " + t.project + "]" : ""}` +
-						`${t.context ? "  {" + t.context + "}" : ""}` +
-						`${t.urgent ? " U" : ""}${t.important ? " I" : ""}` +
-						`${t.due ? "  (due " + t.due + ")" : ""}` +
-						`${t.bucket ? "  -> " + t.bucket : ""}  @ ${t.path}:${t.line}`
-				)
-				.join("\n");
+			.map(
+				(t) =>
+					`- ${t.text}${t.project ? "  [project: " + t.project + "]" : ""}` +
+					`${t.context ? "  {" + t.context + "}" : ""}` +
+					`${t.urgent ? " U" : ""}${t.important ? " I" : ""}` +
+					`${t.due ? "  (due " + t.due + ")" : ""}` +
+					`${t.bucket ? "  -> " + t.bucket : ""}  @ ${t.path}:${t.line}`
+			)
+			.join("\n");
 
 const prioritySchema = z
 	.enum(["1", "2", "3"])
@@ -46,7 +46,7 @@ const dueSchema = z
 
 server.tool(
 	"add_to_inbox",
-	"Add a new task to the TaskLoops inbox. It will be filed under Inbox until clarified. Optionally set its context, priority and due date.",
+	"Add a new task to the anotherGtd inbox. It will be filed under Inbox until clarified. Optionally set its context, priority and due date.",
 	{
 		text: z.string().min(1).describe("The task text"),
 		context: z.string().describe("A context, e.g. @computer").optional(),
@@ -93,7 +93,7 @@ server.tool(
 
 server.tool(
 	"list_tasks",
-	"List tasks in a TaskLoops bucket (inbox, project, next, waiting, someday, reference, trash, done).",
+	"List tasks in a anotherGtd bucket (inbox, project, next, waiting, someday, reference, trash, done).",
 	{ bucket: BUCKET_ENUM.describe("Which bucket to list") },
 	async ({ bucket }) => {
 		const tasks = await core.listTasks(bucket);
@@ -103,7 +103,7 @@ server.tool(
 
 server.tool(
 	"list_contexts",
-	"List the available contexts configured in TaskLoops.",
+	"List the available contexts configured in anotherGtd.",
 	{},
 	async () => {
 		const contexts = await core.listContexts();
@@ -113,7 +113,7 @@ server.tool(
 
 server.tool(
 	"add_context",
-	"Add a new context to TaskLoops. Stored in data.json; the plugin merges it in even if Obsidian is running.",
+	"Add a new context to anotherGtd. Stored in data.json; the plugin merges it in even if Obsidian is running.",
 	{ context: z.string().min(1).describe("The context name, e.g. @errands") },
 	async ({ context }) => {
 		const result = await core.addContext(context);
@@ -123,7 +123,7 @@ server.tool(
 
 server.tool(
 	"list_columns",
-	"List the board columns configured in TaskLoops.",
+	"List the board columns configured in anotherGtd.",
 	{},
 	async () => {
 		const columns = await core.listColumns();
@@ -133,7 +133,7 @@ server.tool(
 
 server.tool(
 	"add_column",
-	"Add a board column to TaskLoops. Stored in data.json; the plugin merges it in even if Obsidian is running.",
+	"Add a board column to anotherGtd. Stored in data.json; the plugin merges it in even if Obsidian is running.",
 	{ column: z.string().min(1).describe("A bucket id: inbox, next, project, waiting, someday, reference, trash, done") },
 	async ({ column }) => {
 		const result = await core.addColumn(column);

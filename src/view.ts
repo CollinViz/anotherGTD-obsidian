@@ -1,5 +1,5 @@
 import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
-import type TaskLoopsPlugin from "./main";
+import type anotherGtdPlugin from "./main";
 import { BUCKETS, Bucket, JoinedTask, Task } from "./types";
 import type { CardOptions, PanelHost } from "./host";
 import { renderBoard } from "./board";
@@ -9,7 +9,7 @@ import { daysUntil, formatDue } from "./dates";
 import { truncate } from "./text";
 import { Wizard, WizardHost, renderWizard } from "./wizard";
 
-export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
+export const VIEW_TYPE_anotherGtd = "anotherGtd-view";
 
 function priorityRank(t: Task): number {
 	if (t.urgent && t.important) return 0;
@@ -23,8 +23,8 @@ function compareTasks(a: JoinedTask, b: JoinedTask): number {
 	return priorityRank(a) - priorityRank(b) || a.text.localeCompare(b.text);
 }
 
-export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
-	plugin: TaskLoopsPlugin;
+export class anotherGtdView extends ItemView implements WizardHost, PanelHost {
+	plugin: anotherGtdPlugin;
 	private active: Bucket | "done";
 	private wizards = new Map<string, Wizard>();
 	private expanded = new Set<string>();
@@ -38,7 +38,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 	private calendar: CalendarState = initialCalendarState();
 	private projectNames = new Map<string, string>();
 
-	constructor(leaf: WorkspaceLeaf, plugin: TaskLoopsPlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: anotherGtdPlugin) {
 		super(leaf);
 		this.plugin = plugin;
 		this.active = plugin.settings.lastBucket ?? "inbox";
@@ -46,7 +46,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 	}
 
 	getViewType(): string {
-		return VIEW_TYPE_TASKLOOPS;
+		return VIEW_TYPE_anotherGtd;
 	}
 
 	getDisplayText(): string {

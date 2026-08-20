@@ -7,7 +7,7 @@
  */
 .tl-view {
 	container-type: inline-size;
-	container-name: taskloops;
+	container-name: anotherGtd;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -120,7 +120,10 @@
 	line-height: 1;
 	white-space: nowrap;
 	cursor: pointer;
-	transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+	transition:
+		background 140ms ease,
+		color 140ms ease,
+		border-color 140ms ease;
 }
 
 .tl-mode:hover {
@@ -254,7 +257,10 @@
 	color: var(--text-muted);
 	font-size: var(--font-ui-smaller);
 	line-height: 1;
-	transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+	transition:
+		background 120ms ease,
+		border-color 120ms ease,
+		color 120ms ease;
 }
 
 .tl-droprail-chip.is-drop-target {
@@ -272,7 +278,6 @@
 	width: 13px;
 	height: 13px;
 }
-
 
 /* ------------------------------------------------------------------ search */
 
@@ -858,7 +863,7 @@
 /* --------------------------------------------------------------- responsive */
 
 /* A narrow sidebar drops the tab labels rather than wrapping to five rows. */
-@container taskloops (max-width: 290px) {
+@container anotherGtd (max-width: 290px) {
 	.tl-tab-label {
 		display: none;
 	}
@@ -877,7 +882,7 @@
 }
 
 /* Roomy panels can afford a wider reading measure for the wizard. */
-@container taskloops (min-width: 520px) {
+@container anotherGtd (min-width: 520px) {
 	.tl-chips.is-grid {
 		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 	}
@@ -1013,7 +1018,9 @@
 	border-radius: var(--radius-m, 8px);
 	background: var(--background-secondary);
 	scroll-snap-align: start;
-	transition: border-color 140ms ease, background 140ms ease;
+	transition:
+		border-color 140ms ease,
+		background 140ms ease;
 }
 
 .tl-column.is-drop-target {
@@ -1149,7 +1156,9 @@
 	font-size: var(--font-ui-smaller);
 	line-height: 1;
 	cursor: pointer;
-	transition: background 140ms ease, color 140ms ease;
+	transition:
+		background 140ms ease,
+		color 140ms ease;
 }
 
 .tl-cal-scale:hover {
@@ -1175,7 +1184,9 @@
 	border: 1px solid var(--background-modifier-border);
 	border-radius: var(--radius-m, 8px);
 	background: var(--background-secondary);
-	transition: border-color 140ms ease, background 140ms ease;
+	transition:
+		border-color 140ms ease,
+		background 140ms ease;
 }
 
 .tl-day.is-today {
@@ -1312,7 +1323,10 @@
 	font-size: var(--font-ui-smaller);
 	line-height: 1;
 	cursor: pointer;
-	transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+	transition:
+		background 120ms ease,
+		border-color 120ms ease,
+		transform 120ms ease;
 }
 
 .tl-cal-day:hover {
@@ -1397,7 +1411,7 @@
 }
 
 /* A week fans out into columns once there is room for them. */
-@container taskloops (min-width: 680px) {
+@container anotherGtd (min-width: 680px) {
 	.tl-week {
 		grid-template-columns: repeat(7, minmax(0, 1fr));
 	}

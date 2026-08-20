@@ -1,18 +1,18 @@
 # Another GTD — rewrite plan (notes-as-truth)
 
-White-room rewrite of TaskLoops into this repo. The UI and the MCP stay; the
+White-room rewrite of anotherGtd into this repo. The UI and the MCP stay; the
 storage model changes: **the notes become the single source of truth for all
 task state**, and `data.json` shrinks to configuration only.
 
 ## 1. The core diagnosis
 
-TaskLoops v1 keeps every task's filing state in `data.json` (`items`:
+anotherGtd v1 keeps every task's filing state in `data.json` (`items`:
 `bucket`, `context`, `waitingFor`, `due`, `done`, `priority`, `projectUid`,
 `order`, `sortedAt`, `doneAt`) and only ever writes one thing to the notes —
 the `*(Handled)*` marker.
 
-This rewrite inverts that. A task's bucket is *which file its line lives in*,
-its context is *which `## @context` heading it sits under*, its priority is its
+This rewrite inverts that. A task's bucket is _which file its line lives in_,
+its context is _which `## @context` heading it sits under_, its priority is its
 tags, its done state is its checkbox. This isn't a storage swap — it deletes
 most of the plugin's hardest code, because the whole reconciliation engine
 (`maybeMergeExternal`, `rehomePath`, `reconcileAll`, `persist`, `uid`, `occ`
@@ -30,42 +30,42 @@ remapping) exists only because state was divorced from the notes.
 - **The MCP integration** (`integrations/`). Same tool surface; the write path
   changes (notes instead of `data.json` items).
 - **The scanner's note-safety discipline** — line re-location by exact text,
-  byte-preserving rewrites. This is now *everything*, because every filing
+  byte-preserving rewrites. This is now _everything_, because every filing
   action is a note edit.
 
 ## 3. The new data model
 
 ### 3a. What stays in `data.json` — config only
 
-| Key | Meaning | Notes |
-|-----|---------|-------|
-| `contexts` | ordered list offered in the picker; also the `## @context` headings to create/sync in Next | config; rename/reorder → rewrite headings; delete context → items → inbox |
-| `boardColumns` | board columns + order | config |
-| `file.inbox/.next/.waiting/.projects/.someday/.reference/.projectFolder/.trash` | bucket files + project folder + trash | defaults under `gtd/` |
-| `trash.keep` | max lines retained in trash | default `200` (undo buffer) |
-| `priority.tags` | Eisenhower literals | `#urgent` `#not-urgent` `#important` `#not-important` |
-| `priority.labels` | optional cosmetic `{ name, color }[]` | e.g. P1/red … P4/blue — not GTD source of truth |
-| `dueSyntax` | due-date tag shape | default `#due(yyyy-mm-dd)` |
-| `waitingSyntax` | waiting-on tag shape | default `#waiting-on: Name` |
-| `lastBucket`, `lastMode`, `showFolder`, `captureNote` | UI prefs | config |
+| Key                                                                             | Meaning                                                                                    | Notes                                                                     |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `contexts`                                                                      | ordered list offered in the picker; also the `## @context` headings to create/sync in Next | config; rename/reorder → rewrite headings; delete context → items → inbox |
+| `boardColumns`                                                                  | board columns + order                                                                      | config                                                                    |
+| `file.inbox/.next/.waiting/.projects/.someday/.reference/.projectFolder/.trash` | bucket files + project folder + trash                                                      | defaults under `gtd/`                                                     |
+| `trash.keep`                                                                    | max lines retained in trash                                                                | default `200` (undo buffer)                                               |
+| `priority.tags`                                                                 | Eisenhower literals                                                                        | `#urgent` `#not-urgent` `#important` `#not-important`                     |
+| `priority.labels`                                                               | optional cosmetic `{ name, color }[]`                                                      | e.g. P1/red … P4/blue — not GTD source of truth                           |
+| `dueSyntax`                                                                     | due-date tag shape                                                                         | default `#due(yyyy-mm-dd)`                                                |
+| `waitingSyntax`                                                                 | waiting-on tag shape                                                                       | default `#waiting-on: Name`                                               |
+| `lastBucket`, `lastMode`, `showFolder`, `captureNote`                           | UI prefs                                                                                   | config                                                                    |
 
 No `items` key. No promotion `tag` key — a task is a checkbox line.
 
 ### 3b. What lives in the notes — all task state
 
-| State | v1 location | v2 note-based encoding |
-|-------|-------------|------------------------|
-| Task identity | `#task` / items map | **`- [ ]` / `- [x]` checkbox line** |
-| Bucket | `item.bucket` | **which file the line is in** |
-| Context | `item.context` | `## @context` heading under Next only; optional context tag on project actions for promote |
-| Priority | `item.priority` (P1/P2/P3) | **both axes explicit:** `#urgent`\|`#not-urgent` + `#important`\|`#not-important` |
-| Due | `item.due` | `#due(yyyy-mm-dd)` tag, any bucket |
-| Waiting on | `item.waitingFor` | `#waiting-on: Name` tag in `20_waiting-for.md` |
-| Done | `item.done` | `- [ ]` → `- [x]` |
-| Project link | `item.projectUid` | indentation under the project's line; next-actions **duplicated** into Next |
-| Order | `item.order` | physical line order in the file |
-| Handled marker | `*(Handled)*` | **dropped** — a sorted task *is* its line elsewhere |
-| Trash | delete / JSON | move line to `gtd/trash.md` (cap 200) |
+| State          | v1 location                | v2 note-based encoding                                                                     |
+| -------------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| Task identity  | `#task` / items map        | **`- [ ]` / `- [x]` checkbox line**                                                        |
+| Bucket         | `item.bucket`              | **which file the line is in**                                                              |
+| Context        | `item.context`             | `## @context` heading under Next only; optional context tag on project actions for promote |
+| Priority       | `item.priority` (P1/P2/P3) | **both axes explicit:** `#urgent`\|`#not-urgent` + `#important`\|`#not-important`          |
+| Due            | `item.due`                 | `#due(yyyy-mm-dd)` tag, any bucket                                                         |
+| Waiting on     | `item.waitingFor`          | `#waiting-on: Name` tag in `20_waiting-for.md`                                             |
+| Done           | `item.done`                | `- [ ]` → `- [x]`                                                                          |
+| Project link   | `item.projectUid`          | indentation under the project's line; next-actions **duplicated** into Next                |
+| Order          | `item.order`               | physical line order in the file                                                            |
+| Handled marker | `*(Handled)*`              | **dropped** — a sorted task _is_ its line elsewhere                                        |
+| Trash          | delete / JSON              | move line to `gtd/trash.md` (cap 200)                                                      |
 
 Deleting `items` removes `uid`, `id`, `occ`, `path`, `text`, `sortedAt`,
 `doneAt`, `provisional`, `order`, `projectUid`, `context`, `waitingFor`,
@@ -91,7 +91,7 @@ done      → checkbox → [x] in place        (a crossed task stays where it wa
 `- [x]`). Priority / due / waiting tags are optional decorations. Non-checkbox
 prose in project files (scope of work, notes) is not a task.
 
-**Context (mandatory for `next` only).** Filing to Next *requires* a context —
+**Context (mandatory for `next` only).** Filing to Next _requires_ a context —
 the clarify flow and the ⋯ menu block "next" until one is chosen (no "No
 context" skip). The plugin ensures `## @context` exists in `10_next-actions.md`
 (creating it and adding the context to config if new), then moves/inserts the
@@ -144,7 +144,7 @@ project file still lists the action while Next holds the do-now copy. Demote
 (next → project) is available from the context menu.
 
 **Reordering** = rewriting one file's line order. Dragging A onto B physically
-moves A's line to B's position, so order *is* file order — no `item.order`.
+moves A's line to B's position, so order _is_ file order — no `item.order`.
 
 **Safety:** a move is committed only after the target write succeeds; on
 failure abort and leave the source untouched. Keep the metadata-cache
@@ -153,6 +153,7 @@ ignore-own-writes guard (`writing` set) so the scan doesn't fight the move.
 ## 7. The clarify flow
 
 Same steps, same look — only the last step differs:
+
 - **Next** has no "No context" skip; a context must be chosen.
 - **Project** files the task into the project's file indented under the line.
 - **Two-minute / done** flips the checkbox.
@@ -172,14 +173,15 @@ trash, move to done. Nothing that can't be expressed in the note.
 - `maybeMergeExternal` (no per-task state to merge — only config arrays)
 - `rehomePath` / reword reconciliation — a reword edits the line in place;
   links via indentation survive automatically
-- `reconcileAll` deletion pruning — deleting the line *is* deleting the task
+- `reconcileAll` deletion pruning — deleting the line _is_ deleting the task
   (trash path is an explicit move)
 - `persist()`, id-remapping on rename — a moved/renamed note carries its tasks
-- One-time TaskLoops migration / `*(Handled)*` marker
+- One-time anotherGtd migration / `*(Handled)*` marker
 
 ## 10. MCP changes (`integrations/`)
 
 Tool surface stays. Internally:
+
 - `add_to_inbox` appends to `gtd/00_inbox.md` (not `captureNote`).
 - `add_to_project` appends an indented child into `gtd/project/<name>.md`.
 - `listTasks` derives bucket from file path, context from `## @context`
@@ -192,7 +194,7 @@ Tool surface stays. Internally:
 
 ## 11. Migration
 
-**None.** No ingest from TaskLoops Inbox or old `data.json` items. The v2
+**None.** No ingest from anotherGtd Inbox or old `data.json` items. The v2
 plugin adopts whatever is already in the bucket files and `## @context`
 headings; config starts clean (or user-edited defaults).
 
@@ -200,24 +202,24 @@ headings; config starts clean (or user-edited defaults).
 
 All open items settled 2026-08-18 — see `openItems.md` for full text.
 
-| # | Decision |
-|---|----------|
-| 1 | Task = checkbox line (`- [ ]` / `- [x]`); tags optional |
-| 2 | Due = `#due(yyyy-mm-dd)` |
-| 3 | Waiting file `20_waiting-for.md`; tag `#waiting-on: Name` |
-| 4 | Both Eisenhower axes always explicit on the line |
-| 5 | Trash → `gtd/trash.md`, keep last 200 |
-| 6 | `## @context` sections only on Next; project lines may carry context tag for promote |
-| 7 | `30_projects.md` index + `gtd/project/<name>.md` actions |
-| 8 | Checkbox = task in project files; next-actions **duplicated** to Next; demote via context menu |
-| 9 | Eisenhower tags = priority truth; optional P1…Pn colour labels in config |
-| 10 | Block Next without context; config↔file sync; delete context → inbox; project `#context` on promote |
-| 11 | No migration |
-| 12 | Config-only `data.json` (no `items`; no promotion tag key) |
+| #   | Decision                                                                                            |
+| --- | --------------------------------------------------------------------------------------------------- |
+| 1   | Task = checkbox line (`- [ ]` / `- [x]`); tags optional                                             |
+| 2   | Due = `#due(yyyy-mm-dd)`                                                                            |
+| 3   | Waiting file `20_waiting-for.md`; tag `#waiting-on: Name`                                           |
+| 4   | Both Eisenhower axes always explicit on the line                                                    |
+| 5   | Trash → `gtd/trash.md`, keep last 200                                                               |
+| 6   | `## @context` sections only on Next; project lines may carry context tag for promote                |
+| 7   | `30_projects.md` index + `gtd/project/<name>.md` actions                                            |
+| 8   | Checkbox = task in project files; next-actions **duplicated** to Next; demote via context menu      |
+| 9   | Eisenhower tags = priority truth; optional P1…Pn colour labels in config                            |
+| 10  | Block Next without context; config↔file sync; delete context → inbox; project `#context` on promote |
+| 11  | No migration                                                                                        |
+| 12  | Config-only `data.json` (no `items`; no promotion tag key)                                          |
 
 ## 13. Repo scaffolding & phases
 
-Carried over from TaskLoops: TypeScript + esbuild + Obsidian config,
+Carried over from anotherGtd: TypeScript + esbuild + Obsidian config,
 `.editorconfig` (tabs), `styles.css`/`manifest.json` at root, test harness
 (`test/run.mjs` bundling against `obsidian-stub.mjs`), the release workflow,
 and the lint config (sentence-case off).

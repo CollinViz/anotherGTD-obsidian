@@ -2,7 +2,7 @@ import { App, FuzzySuggestModal, Modal, Setting, TFolder } from "obsidian";
 import { JoinedTask } from "./types";
 import { shiftISO, todayISO } from "./dates";
 
-export const CAPTURE_BASENAME = "TaskLoops Inbox.md";
+export const CAPTURE_BASENAME = "anotherGtd Inbox.md";
 
 /**
  * Choose the folder captures live in. Dismissing without choosing is a valid

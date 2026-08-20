@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import type TaskLoopsPlugin from "./main";
+import type anotherGtdPlugin from "./main";
 import { Bucket, JoinedTask } from "./types";
 import { truncate } from "./text";
 import { DateModal } from "./modals";
@@ -14,7 +14,7 @@ export type Step =
 	| "schedule"
 	| "project";
 
-export type FilePatch = Parameters<TaskLoopsPlugin["file"]>[1];
+export type FilePatch = Parameters<anotherGtdPlugin["file"]>[1];
 
 export interface Wizard {
 	step: Step;
@@ -23,7 +23,7 @@ export interface Wizard {
 }
 
 export interface WizardHost {
-	plugin: TaskLoopsPlugin;
+	plugin: anotherGtdPlugin;
 	rerender(): void;
 	cancelWizard(id: string): void;
 }
@@ -137,7 +137,13 @@ export function renderWizard(
 			ask("How should it be handled?");
 			const c = choices();
 			choice(c, "Next action", "You do it, as soon as you can", () =>
-				go("context")
+			{
+				if (task.context && host.plugin.settings.contexts.includes(task.context)) {
+					finish({ bucket: "next", context: task.context })
+				} else {
+					go("context")
+				}
+			}
 			);
 			choice(c, "Project", "Takes more than one step", () =>
 				file({ bucket: "project" })

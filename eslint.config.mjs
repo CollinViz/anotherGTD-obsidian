@@ -27,7 +27,7 @@ export default tseslint.config(
 		},
 		rules: {
 			/*
-			 * Reports the product name as "Taskloops" and tag literals such as
+			 * Reports the product name as "anotherGtd" and tag literals such as
 			 * "#task" as "#Task". Proper nouns and literals are not sentence
 			 * case, so here it fires only on false positives.
 			 */

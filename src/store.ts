@@ -179,6 +179,12 @@ export class TaskStore {
 			return;
 		}
 		if (bucket === "next" && !opts.context) {
+			if (task.context && this.settings.contexts.includes(task.context)) {
+				opts.context = task.context;
+			}
+		}
+
+		if (bucket === "next" && !opts.context) {
 			throw new Error("Next requires a context.");
 		}
 		if (bucket === "waiting" && !opts.waitingFor) {
